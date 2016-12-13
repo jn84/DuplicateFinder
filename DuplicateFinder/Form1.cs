@@ -12,7 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace DuplicateFinder_Jenny
+namespace DuplicateFinder
 {
 	public partial class Form1 : Form
 	{

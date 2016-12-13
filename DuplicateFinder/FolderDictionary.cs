@@ -6,7 +6,7 @@ using System.Linq;
 using System.Security;
 using System.Security.Cryptography;
 
-namespace DuplicateFinder_Jenny
+namespace DuplicateFinder
 {
 	internal class FolderDictionary : IEnumerable<List<string>>
 	{

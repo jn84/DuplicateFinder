@@ -1,7 +1,7 @@
 ﻿using System.Linq;
 using System.Windows.Forms;
 
-namespace DuplicateFinder_Jenny
+namespace DuplicateFinder
 {
 	internal class DataGridView_indexByKey : DataGridView
 	{

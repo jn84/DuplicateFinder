@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography;
 
-namespace DuplicateFinder_Jenny
+namespace DuplicateFinder
 {
 	internal class FileDictionary : IEnumerable<List<string>>
 	{

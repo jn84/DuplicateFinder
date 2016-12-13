@@ -2,7 +2,7 @@
 using System.IO;
 using System.Windows.Forms;
 
-namespace DuplicateFinder_Jenny
+namespace DuplicateFinder
 {
 	internal delegate void SetTextBoxText_callback(TextBox t, string key);
 

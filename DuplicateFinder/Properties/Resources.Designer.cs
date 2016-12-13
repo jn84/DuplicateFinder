@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace DuplicateFinder_Jenny.Properties
+namespace DuplicateFinder.Properties
 {
 
 

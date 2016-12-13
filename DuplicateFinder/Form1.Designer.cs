@@ -1,4 +1,4 @@
-﻿namespace DuplicateFinder_Jenny
+﻿namespace DuplicateFinder
 {
 	partial class Form1
 	{
