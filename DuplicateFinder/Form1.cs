@@ -16,10 +16,12 @@ namespace DuplicateFinder
 {
 	public partial class Form1 : Form
 	{
+		private readonly List<FileInfo> _hashedFileList;
+
 		private readonly List<string> _searchDirectoriesList = new List<string>();
 		private readonly List<string> _includedExtensionsList = new List<string>();
 		private List<DirectoryInfo> _fullDirectoryList;
-		private FileDictionary _fileDict;
+		private FileHandler _fileDict;
 
 		private int _filesProcessedCount = 0,   //
 		            _totalFilesCount = 0;		// For use with progress bar
@@ -98,7 +100,7 @@ namespace DuplicateFinder
 
 		private void BuildFileDictionary()
 		{
-			_fileDict = new FileDictionary();
+			_fileDict = new FileHandler();
 			foreach (DirectoryInfo dirElem in _fullDirectoryList)
 			{
 				try
@@ -110,7 +112,6 @@ namespace DuplicateFinder
 							_fileDict.Add(fElem.FullName);
 							AddToDataGrid(_fileDict.LastKey, fElem.FullName);
 							_filesProcessedCount++;
-							//ThreadSafe_SetTextboxText(txtTotalFiles, _totalFilesCount.ToString()); // Redundant unless changed
 							ThreadSafe_SetProgressBar(progbarFiles, _filesProcessedCount, _totalFilesCount);
 						}
 						catch (PathTooLongException) { }
@@ -121,26 +122,28 @@ namespace DuplicateFinder
 			ThreadSafe_EnableControl(btnFindDupes, true);
 		}
 
-		private IEnumerable<FileInfo> SelectExtensions(IList<FileInfo> input)
-		{
-			if (_includedExtensionsList.Count.Equals(0))
-				return input;
-			for (int i = input.Count() - 1; i >= 0; i--)
-			{
-				try
-				{
-					if (!_includedExtensionsList.Contains(Path.GetExtension(input[i].FullName)))
-						input.RemoveAt(i);
-				}
-				catch (PathTooLongException)
-				{
-					// Can something be done?
-					// FileInfo t = new FileInfo("\\?\\" +);
-					// Console.WriteLine(input[i].FullName);
-				}
-			}
-			return input;
-		}
+
+		// TODO: May not use. Removed from code for now
+		//private IEnumerable<FileInfo> SelectExtensions(IList<FileInfo> input)
+		//{
+		//	if (_includedExtensionsList.Count.Equals(0))
+		//		return input;
+		//	for (int i = input.Count() - 1; i >= 0; i--)
+		//	{
+		//		try
+		//		{
+		//			if (!_includedExtensionsList.Contains(Path.GetExtension(input[i].FullName)))
+		//				input.RemoveAt(i);
+		//		}
+		//		catch (PathTooLongException)
+		//		{
+		//			// Can something be done?
+		//			// FileInfo t = new FileInfo("\\?\\" +);
+		//			// Console.WriteLine(input[i].FullName);
+		//		}
+		//	}
+		//	return input;
+		//}
 
 		private int RKey(string key)
 		{

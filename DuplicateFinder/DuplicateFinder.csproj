@@ -50,8 +50,8 @@
     <Compile Include="DataGridView_indexByKey.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="FileDictionary.cs" />
-    <Compile Include="FolderDictionary.cs" />
+    <Compile Include="FileHandler.cs" />
+    <Compile Include="FolderHandler.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>

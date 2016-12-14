@@ -8,7 +8,7 @@ using System.Security.Cryptography;
 
 namespace DuplicateFinder
 {
-	internal class FolderDictionary : IEnumerable<List<string>>
+	internal class FolderHandler
 	{
 		private Dictionary<int, List<string>> _storage = new Dictionary<int, List<string>>();
 
@@ -57,12 +57,5 @@ namespace DuplicateFinder
 			targetList = new List<string> { folderPath };
 			_storage.Add(LastKey, targetList);
 		}
-
-		public IEnumerator<List<string>> GetEnumerator()
-		{
-			return _storage.Values.GetEnumerator();
-		}
-
-		IEnumerator IEnumerable.GetEnumerator() { return GetEnumerator(); }
 	}
 }
