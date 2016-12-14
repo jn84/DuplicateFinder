@@ -38,9 +38,9 @@
 			this.ctxMenuDir = new System.Windows.Forms.ContextMenuStrip(this.components);
 			this.addDirectoryToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.removeDirectoryToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-			this.txtCounter = new System.Windows.Forms.TextBox();
+			this.txtTotalFiles = new System.Windows.Forms.TextBox();
 			this.lblProcessed = new System.Windows.Forms.Label();
-			this.txtDirectoriesFound = new System.Windows.Forms.TextBox();
+			this.txtTotalFolders = new System.Windows.Forms.TextBox();
 			this.lblDirectoriesFound = new System.Windows.Forms.Label();
 			this.dgrdFileDuplicates = new System.Windows.Forms.DataGridView();
 			this.gridColKey = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -59,6 +59,7 @@
 			this.gridColFiles = new System.Windows.Forms.DataGridViewTextBoxColumn();
 			this.gridColSubFolderCount = new System.Windows.Forms.DataGridViewTextBoxColumn();
 			this.gridColFolderCount = new System.Windows.Forms.DataGridViewTextBoxColumn();
+			this.progbarFiles = new System.Windows.Forms.ProgressBar();
 			this.ctxMenuDir.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.dgrdFileDuplicates)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.dgrdFileList)).BeginInit();
@@ -109,59 +110,59 @@
             this.addDirectoryToolStripMenuItem,
             this.removeDirectoryToolStripMenuItem});
 			this.ctxMenuDir.Name = "ctxMenuDir";
-			this.ctxMenuDir.Size = new System.Drawing.Size(297, 64);
+			this.ctxMenuDir.Size = new System.Drawing.Size(310, 64);
 			// 
 			// addDirectoryToolStripMenuItem
 			// 
 			this.addDirectoryToolStripMenuItem.Name = "addDirectoryToolStripMenuItem";
-			this.addDirectoryToolStripMenuItem.Size = new System.Drawing.Size(296, 30);
+			this.addDirectoryToolStripMenuItem.Size = new System.Drawing.Size(309, 30);
 			this.addDirectoryToolStripMenuItem.Text = "Add Directory";
 			this.addDirectoryToolStripMenuItem.Click += new System.EventHandler(this.addDirectoryToolStripMenuItem_Click);
 			// 
 			// removeDirectoryToolStripMenuItem
 			// 
 			this.removeDirectoryToolStripMenuItem.Name = "removeDirectoryToolStripMenuItem";
-			this.removeDirectoryToolStripMenuItem.Size = new System.Drawing.Size(296, 30);
+			this.removeDirectoryToolStripMenuItem.Size = new System.Drawing.Size(309, 30);
 			this.removeDirectoryToolStripMenuItem.Text = "Remove Selected Directory";
 			this.removeDirectoryToolStripMenuItem.Click += new System.EventHandler(this.removeDirectoryToolStripMenuItem_Click);
 			// 
-			// txtCounter
+			// txtTotalFiles
 			// 
-			this.txtCounter.Location = new System.Drawing.Point(148, 874);
-			this.txtCounter.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
-			this.txtCounter.Name = "txtCounter";
-			this.txtCounter.ReadOnly = true;
-			this.txtCounter.Size = new System.Drawing.Size(148, 26);
-			this.txtCounter.TabIndex = 4;
+			this.txtTotalFiles.Location = new System.Drawing.Point(131, 880);
+			this.txtTotalFiles.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
+			this.txtTotalFiles.Name = "txtTotalFiles";
+			this.txtTotalFiles.ReadOnly = true;
+			this.txtTotalFiles.Size = new System.Drawing.Size(148, 26);
+			this.txtTotalFiles.TabIndex = 4;
 			// 
 			// lblProcessed
 			// 
 			this.lblProcessed.AutoSize = true;
-			this.lblProcessed.Location = new System.Drawing.Point(18, 878);
+			this.lblProcessed.Location = new System.Drawing.Point(42, 883);
 			this.lblProcessed.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
 			this.lblProcessed.Name = "lblProcessed";
-			this.lblProcessed.Size = new System.Drawing.Size(121, 20);
+			this.lblProcessed.Size = new System.Drawing.Size(81, 20);
 			this.lblProcessed.TabIndex = 5;
-			this.lblProcessed.Text = "Files Processed";
+			this.lblProcessed.Text = "Total Files";
 			// 
-			// txtDirectoriesFound
+			// txtTotalFolders
 			// 
-			this.txtDirectoriesFound.Location = new System.Drawing.Point(462, 874);
-			this.txtDirectoriesFound.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
-			this.txtDirectoriesFound.Name = "txtDirectoriesFound";
-			this.txtDirectoriesFound.ReadOnly = true;
-			this.txtDirectoriesFound.Size = new System.Drawing.Size(148, 26);
-			this.txtDirectoriesFound.TabIndex = 6;
+			this.txtTotalFolders.Location = new System.Drawing.Point(131, 916);
+			this.txtTotalFolders.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
+			this.txtTotalFolders.Name = "txtTotalFolders";
+			this.txtTotalFolders.ReadOnly = true;
+			this.txtTotalFolders.Size = new System.Drawing.Size(148, 26);
+			this.txtTotalFolders.TabIndex = 6;
 			// 
 			// lblDirectoriesFound
 			// 
 			this.lblDirectoriesFound.AutoSize = true;
-			this.lblDirectoriesFound.Location = new System.Drawing.Point(318, 878);
+			this.lblDirectoriesFound.Location = new System.Drawing.Point(22, 919);
 			this.lblDirectoriesFound.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
 			this.lblDirectoriesFound.Name = "lblDirectoriesFound";
-			this.lblDirectoriesFound.Size = new System.Drawing.Size(135, 20);
+			this.lblDirectoriesFound.Size = new System.Drawing.Size(101, 20);
 			this.lblDirectoriesFound.TabIndex = 7;
-			this.lblDirectoriesFound.Text = "Directories Found";
+			this.lblDirectoriesFound.Text = "Total Folders";
 			// 
 			// dgrdFileDuplicates
 			// 
@@ -347,16 +348,24 @@
 			this.gridColFolderCount.ReadOnly = true;
 			this.gridColFolderCount.Width = 45;
 			// 
+			// progbarFiles
+			// 
+			this.progbarFiles.Location = new System.Drawing.Point(297, 879);
+			this.progbarFiles.Name = "progbarFiles";
+			this.progbarFiles.Size = new System.Drawing.Size(308, 27);
+			this.progbarFiles.TabIndex = 12;
+			// 
 			// Form1
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(1488, 912);
+			this.ClientSize = new System.Drawing.Size(1488, 1062);
+			this.Controls.Add(this.progbarFiles);
 			this.Controls.Add(this.tabCtlDuplicates);
 			this.Controls.Add(this.lblDirectoriesFound);
-			this.Controls.Add(this.txtDirectoriesFound);
+			this.Controls.Add(this.txtTotalFolders);
 			this.Controls.Add(this.lblProcessed);
-			this.Controls.Add(this.txtCounter);
+			this.Controls.Add(this.txtTotalFiles);
 			this.Controls.Add(this.btnFindDupes);
 			this.Controls.Add(this.btnAddDirectory);
 			this.Controls.Add(this.lstDirectories);
@@ -364,6 +373,7 @@
 			this.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
 			this.Name = "Form1";
 			this.Text = "Form1";
+			this.Load += new System.EventHandler(this.Form1_Load);
 			this.ctxMenuDir.ResumeLayout(false);
 			((System.ComponentModel.ISupportInitialize)(this.dgrdFileDuplicates)).EndInit();
 			((System.ComponentModel.ISupportInitialize)(this.dgrdFileList)).EndInit();
@@ -385,9 +395,9 @@
 		private System.Windows.Forms.ContextMenuStrip ctxMenuDir;
 		private System.Windows.Forms.ToolStripMenuItem addDirectoryToolStripMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem removeDirectoryToolStripMenuItem;
-		private System.Windows.Forms.TextBox txtCounter;
+		private System.Windows.Forms.TextBox txtTotalFiles;
 		private System.Windows.Forms.Label lblProcessed;
-		private System.Windows.Forms.TextBox txtDirectoriesFound;
+		private System.Windows.Forms.TextBox txtTotalFolders;
 		private System.Windows.Forms.Label lblDirectoriesFound;
 		private System.Windows.Forms.DataGridView dgrdFileDuplicates;
 		private System.Windows.Forms.DataGridView dgrdFileList;
@@ -406,6 +416,7 @@
 		private System.Windows.Forms.DataGridViewTextBoxColumn gridColFiles;
 		private System.Windows.Forms.DataGridViewTextBoxColumn gridColSubFolderCount;
 		private System.Windows.Forms.DataGridViewTextBoxColumn gridColFolderCount;
+		private System.Windows.Forms.ProgressBar progbarFiles;
 	}
 }
 

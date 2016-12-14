@@ -10,12 +10,14 @@ namespace DuplicateFinder
 	{
 		private MD5 hasher;
 		private Dictionary<string, List<string>> _storage = new Dictionary<string, List<string>>();
+		
+		// TODO: File sizes should be compared before we spend the time calculating MD5
+		// TODO: Additionally, the option to require matching file names should be added
 
-
-		public List<string> this[string k]
+		public List<string> this[string key]
 		{
-			get { return _storage[k]; }
-			set { _storage[k] = value; }
+			get { return _storage[key]; }
+			set { _storage[key] = value; }
 		}
 
 		public string LastKey { get; private set; }

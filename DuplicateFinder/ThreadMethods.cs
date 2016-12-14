@@ -12,12 +12,15 @@ namespace DuplicateFinder
 
 	internal delegate void IncGridRowCount_callBack(DataGridView g, string key);
 
+	internal delegate void SetProgressBarState_callback(ProgressBar p, int currentValue, int maxValue);
+
+
 	public partial class Form1 : Form
 	{
 
 		private void ThreadSafe_SetTextboxText(Control t, string val)
 		{
-			if (txtCounter.InvokeRequired)
+			if (txtTotalFiles.InvokeRequired)
 			{
 				SetTextBoxText_callback del = SetTextBoxText;
 				Invoke(del, new object[] { t, val });
@@ -61,7 +64,7 @@ namespace DuplicateFinder
 		private void AddGridRow(DataGridView g, string key, string value)
 		{
 			var temp = new FileInfo(value);
-			g.Rows.Add(key, Path.GetFileName(value), _fDict[key].Count, temp.Length/1048576m);
+			g.Rows.Add(key, Path.GetFileName(value), _fileDict[key].Count, temp.Length/1048576m);
 		}		
 
 		private void ThreadSafe_IncGridRowCount(DataGridView g, string key)
@@ -81,5 +84,21 @@ namespace DuplicateFinder
 					(Convert.ToInt32(g.Rows[index].Cells[2].Value) + 1);
 		}
 
+		private void ThreadSafe_SetProgressBar(ProgressBar p, int current, int max)
+		{
+			if (p.InvokeRequired)
+			{
+				SetProgressBarState_callback del = SetProgressBarState;
+				Invoke(del, new object[] { p, current, max });
+			}
+			else
+				SetProgressBarState(p, current, max);
+		}
+
+		private void SetProgressBarState(ProgressBar p, int current, int max)
+		{
+			p.Maximum = max;
+			p.Value = current;
+		}
 	}
 }

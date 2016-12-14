@@ -25,7 +25,7 @@ namespace DuplicateFinder
 			var temp = new DirectoryInfo(folderPath);
 			try
 			{
-				LastKey = temp.Parent.GetFileSystemInfos().GetHashCode();
+				if (temp.Parent != null) LastKey = temp.Parent.GetFileSystemInfos().GetHashCode();
 			}
 			catch (SecurityException)
 			{

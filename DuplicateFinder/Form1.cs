@@ -19,9 +19,10 @@ namespace DuplicateFinder
 		private readonly List<string> _searchDirectoriesList = new List<string>();
 		private readonly List<string> _includedExtensionsList = new List<string>();
 		private List<DirectoryInfo> _fullDirectoryList;
-		private FileDictionary _fDict;
+		private FileDictionary _fileDict;
 
-		private int _count = 0;
+		private int _filesProcessedCount = 0,   //
+		            _totalFilesCount = 0;		// For use with progress bar
 
 		public Form1()
 		{
@@ -69,21 +70,25 @@ namespace DuplicateFinder
 				return;
 			_searchDirectoriesList.Remove(lstDirectories.SelectedItem.ToString());
 			lstDirectories.Items.RemoveAt(lstDirectories.SelectedIndex);
-			foreach (var elem in _searchDirectoriesList)
+			foreach (string elem in _searchDirectoriesList)
 				Console.WriteLine(elem);
 		}
 
 		private void BuildDirectoryList()
 		{
 			_fullDirectoryList = new List<DirectoryInfo>();
-			foreach (var elem in _searchDirectoriesList)
+			foreach (string elem in _searchDirectoriesList)
 				_fullDirectoryList.Add(new DirectoryInfo(elem));
-			for (var i = 0; i < _fullDirectoryList.Count; i++)
+
+			// Do not use foreach since the collection is modified within the loop
+			for (int i = 0; i < _fullDirectoryList.Count; i++)
 			{
 				try
 				{
+					_totalFilesCount += _fullDirectoryList[i].GetFiles().Length; 
 					_fullDirectoryList.AddRange(_fullDirectoryList[i].GetDirectories());
-					ThreadSafe_SetTextboxText(txtDirectoriesFound, _fullDirectoryList.Count.ToString());
+					ThreadSafe_SetTextboxText(txtTotalFolders, _fullDirectoryList.Count.ToString());
+					ThreadSafe_SetTextboxText(txtTotalFiles, _totalFilesCount.ToString());
 				}
 				catch (UnauthorizedAccessException) { }
 				
@@ -93,19 +98,20 @@ namespace DuplicateFinder
 
 		private void BuildFileDictionary()
 		{
-			_fDict = new FileDictionary();
-			foreach (var dElem in _fullDirectoryList)
+			_fileDict = new FileDictionary();
+			foreach (DirectoryInfo dirElem in _fullDirectoryList)
 			{
 				try
 				{
-					foreach (var fElem in SelectExtensions(dElem.GetFiles().ToList()))
+					foreach (FileInfo fElem in SelectExtensions(dirElem.GetFiles().ToList()))
 					{
 						try
 						{
-							_fDict.Add(fElem.FullName);
-							AddToDataGrid(_fDict.LastKey, fElem.FullName);
-							_count++;
-							ThreadSafe_SetTextboxText(txtCounter, _count.ToString());
+							_fileDict.Add(fElem.FullName);
+							AddToDataGrid(_fileDict.LastKey, fElem.FullName);
+							_filesProcessedCount++;
+							//ThreadSafe_SetTextboxText(txtTotalFiles, _totalFilesCount.ToString()); // Redundant unless changed
+							ThreadSafe_SetProgressBar(progbarFiles, _filesProcessedCount, _totalFilesCount);
 						}
 						catch (PathTooLongException) { }
 					}
@@ -115,11 +121,11 @@ namespace DuplicateFinder
 			ThreadSafe_EnableControl(btnFindDupes, true);
 		}
 
-		private List<FileInfo> SelectExtensions(List<FileInfo> input)
+		private IEnumerable<FileInfo> SelectExtensions(IList<FileInfo> input)
 		{
 			if (_includedExtensionsList.Count.Equals(0))
 				return input;
-			for (var i = input.Count() - 1; i >= 0; i--)
+			for (int i = input.Count() - 1; i >= 0; i--)
 			{
 				try
 				{
@@ -147,9 +153,9 @@ namespace DuplicateFinder
 
 		private void AddToDataGrid(string lastKey, string value)
 		{
-			if (_fDict[lastKey].Count < 2)
+			if (_fileDict[lastKey].Count < 2)
 				return;
-			if (_fDict[lastKey].Count.Equals(2))
+			if (_fileDict[lastKey].Count.Equals(2))
 				ThreadSafe_AddGridRow(dgrdFileDuplicates, lastKey, value);
 			else
 				ThreadSafe_IncGridRowCount(dgrdFileDuplicates, lastKey);
@@ -159,7 +165,7 @@ namespace DuplicateFinder
 		{
 			dgrdFileList.Rows.Clear();
 			dgrdFileDuplicates.Rows[e.RowIndex].Selected = true;
-			foreach (var elem in _fDict[dgrdFileDuplicates.Rows[e.RowIndex].Cells[0].Value.ToString()])
+			foreach (var elem in _fileDict[dgrdFileDuplicates.Rows[e.RowIndex].Cells[0].Value.ToString()])
 			{
 				var temp = new DataGridViewRow();
 				temp.Cells.Add(new DataGridViewTextBoxCell());
@@ -168,6 +174,10 @@ namespace DuplicateFinder
 			}
 		}
 
+		private void Form1_Load(object sender, EventArgs e)
+		{
+
+		}
 	}
 }
 
