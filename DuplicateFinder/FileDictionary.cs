@@ -11,10 +11,14 @@ namespace DuplicateFinder
 	internal class FileDictionary : IEnumerable<List<string>>
 	{
 		// TODO: Add some way to switch between crypto types based on a single variable (which would selectable from the GUI)
+		private HashBase<MD5CryptoServiceProvider> _hasher = new HashBase<MD5CryptoServiceProvider>();
+
+
 		private MD5 _MD5Hasher;
 		private SHA1 _SHA1Hasher;
 		private SHA256 _SHA256Hasher;
 		private SHA512 _SHA512Hasher;
+		private readonly Dictionary<string, List<FileInfo>> _fileHashDict = new Dictionary<string, List<FileInfo>>();
 		private readonly Dictionary<string, List<string>> _fileHashDictionary = new Dictionary<string, List<string>>();
 		private Dictionary<long, List<FileInfo>> _fileSizeDictionary = new Dictionary<long, List<FileInfo>>();
 		private List<FileInfo> _equalSizeList = new List<FileInfo>();
@@ -44,6 +48,7 @@ namespace DuplicateFinder
 			FileInfo[] fileArr = dInfo.GetFiles();
 			foreach (FileInfo file in fileArr)
 			{
+				// Grab the file length
 				long fLen = file.Length;
 
 				if (!_fileSizeDictionary.ContainsKey(fLen))
@@ -53,19 +58,42 @@ namespace DuplicateFinder
 			}
 		}
 
+		// Special handling for zero size file since there are typically many of them
+		// Don't waste time hashing them all
+		private void HandleZeroSizeFiles()
+		{
+			List<FileInfo> zeroSizeFiles;
+
+			// If there are any files with a size of zero
+			if (!_fileSizeDictionary.TryGetValue(0, out zeroSizeFiles)) return;
+			if (zeroSizeFiles.Count == 1) // only one. no duplicates
+				return;
+			string hash = _hasher.GetHash(zeroSizeFiles[0]);
+			_fileHashDict.Add(hash, zeroSizeFiles);
+		}
+
 		// Method to process the lists of files whose sizes are equal
 		// Compare the MD5 SUMS, then <maybe> potentially a byte<->byte comparison
 		public void BuildComparisonList()
 		{
-			_MD5Hasher = new MD5CryptoServiceProvider();
+			// Deal with zero size files
+			HandleZeroSizeFiles();
 
 			// For each list of same size files in _fileSizeDictionary...
 			foreach (List<FileInfo> fileList in _fileSizeDictionary.Values)
 			{
-				// Where the list is greater than 1 (more than one file of the given size)
-				if (fileList.Count > 1)
+				// If the list has only one element, it must not be duplicate -> go to next list
+				if (fileList.Count <= 1)
+					continue;
+
+				// Calculate each file hash (MD5, SHA1, SHA256, SHA512) and add it to _fileHashDictionary
+				foreach (FileInfo file in fileList)
 				{
-					// Calculate the file's hash (MD5, SHA1, SHA256, SHA512) and add it to _fileHashDictionary
+					string currentHash = _hasher.GetHash(file);
+					if (!_fileHashDict.ContainsKey(currentHash))
+						_fileHashDict.Add(_hasher.GetHash(file), new List<FileInfo> { file } );
+					else
+						_fileHashDict[currentHash].Add(file);
 				}
 			}
 		}
