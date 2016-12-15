@@ -15,7 +15,7 @@ namespace DuplicateFinder
 	internal delegate void SetProgressBarState_callback(ProgressBar p, int currentValue, int maxValue);
 
 
-	public partial class Form1 : Form
+	public partial class frmDuplicateFinderMain : Form
 	{
 
 		private void ThreadSafe_SetTextboxText(Control t, string val)

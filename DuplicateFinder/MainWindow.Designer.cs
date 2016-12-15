@@ -1,6 +1,6 @@
 ﻿namespace DuplicateFinder
 {
-	partial class Form1
+	partial class frmDuplicateFinderMain
 	{
 		/// <summary>
 		/// Required designer variable.
@@ -29,9 +29,9 @@
 		private void InitializeComponent()
 		{
 			this.components = new System.ComponentModel.Container();
-			System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
-			System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
-			System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
+			System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle7 = new System.Windows.Forms.DataGridViewCellStyle();
+			System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle8 = new System.Windows.Forms.DataGridViewCellStyle();
+			System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle9 = new System.Windows.Forms.DataGridViewCellStyle();
 			this.lstDirectories = new System.Windows.Forms.ListBox();
 			this.btnAddDirectory = new System.Windows.Forms.Button();
 			this.btnFindDupes = new System.Windows.Forms.Button();
@@ -189,8 +189,8 @@
 			// 
 			// gridColKey
 			// 
-			dataGridViewCellStyle1.NullValue = null;
-			this.gridColKey.DefaultCellStyle = dataGridViewCellStyle1;
+			dataGridViewCellStyle7.NullValue = null;
+			this.gridColKey.DefaultCellStyle = dataGridViewCellStyle7;
 			this.gridColKey.HeaderText = "";
 			this.gridColKey.Name = "gridColKey";
 			this.gridColKey.ReadOnly = true;
@@ -206,8 +206,8 @@
 			// 
 			// gridColCount
 			// 
-			dataGridViewCellStyle2.NullValue = null;
-			this.gridColCount.DefaultCellStyle = dataGridViewCellStyle2;
+			dataGridViewCellStyle8.NullValue = null;
+			this.gridColCount.DefaultCellStyle = dataGridViewCellStyle8;
 			this.gridColCount.HeaderText = "Count";
 			this.gridColCount.Name = "gridColCount";
 			this.gridColCount.ReadOnly = true;
@@ -216,9 +216,9 @@
 			// 
 			// gridColSize
 			// 
-			dataGridViewCellStyle3.Format = "N4";
-			dataGridViewCellStyle3.NullValue = null;
-			this.gridColSize.DefaultCellStyle = dataGridViewCellStyle3;
+			dataGridViewCellStyle9.Format = "N4";
+			dataGridViewCellStyle9.NullValue = null;
+			this.gridColSize.DefaultCellStyle = dataGridViewCellStyle9;
 			this.gridColSize.HeaderText = "Size (MB)";
 			this.gridColSize.Name = "gridColSize";
 			this.gridColSize.ReadOnly = true;
@@ -355,7 +355,7 @@
 			this.progbarFiles.Size = new System.Drawing.Size(308, 27);
 			this.progbarFiles.TabIndex = 12;
 			// 
-			// Form1
+			// frmDuplicateFinderMain
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -371,8 +371,8 @@
 			this.Controls.Add(this.lstDirectories);
 			this.Controls.Add(this.groupBox1);
 			this.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
-			this.Name = "Form1";
-			this.Text = "Form1";
+			this.Name = "frmDuplicateFinderMain";
+			this.Text = "Duplicate File/Folder Finder";
 			this.Load += new System.EventHandler(this.Form1_Load);
 			this.ctxMenuDir.ResumeLayout(false);
 			((System.ComponentModel.ISupportInitialize)(this.dgrdFileDuplicates)).EndInit();
