@@ -12,7 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-// New branch test commit
+// New branch test commit // ok. I made a change.
 
 namespace DuplicateFinder
 {
