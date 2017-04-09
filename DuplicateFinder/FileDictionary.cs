@@ -3,13 +3,17 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography;
+using System.Collections.Concurrent;
 
 namespace DuplicateFinder
 {
 	internal class FileDictionary : IEnumerable<List<string>>
 	{
+		private const bool _isUseMultiThreading = true;
+
 		private MD5 hasher;
 		private Dictionary<string, List<string>> _storage = new Dictionary<string, List<string>>();
+		private ConcurrentDictionary<string , List<string>> _concurrentStorage = new ConcurrentDictionary<string, List<string>>();
 		
 		// TODO: File sizes should be compared before we spend the time calculating MD5
 		// TODO: Additionally, the option to require matching file names should be added
