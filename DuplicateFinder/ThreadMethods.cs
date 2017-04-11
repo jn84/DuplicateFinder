@@ -8,7 +8,7 @@ namespace DuplicateFinder
 
 	internal delegate void EnableControl_callBack(Control c, bool val);
 
-	internal delegate void AddGridRow_callBack(DataGridView g, string key, string value);
+	internal delegate void AddGridRow_callBack(DataGridView g, string key, FileInfo value);
 
 	internal delegate void IncGridRowCount_callBack(DataGridView g, string key);
 
@@ -50,21 +50,21 @@ namespace DuplicateFinder
 			c.Enabled = val;
 		}
 
-		private void ThreadSafe_AddGridRow(DataGridView g, string key, string value)
+		private void ThreadSafe_AddGridRow(DataGridView g, string key, FileInfo file)
 		{
 			if (g.InvokeRequired)
 			{
 				AddGridRow_callBack del = AddGridRow;
-				Invoke(del, new object[] { g, key, value });
+				Invoke(del, new object[] { g, key, file });
 			}
 			else
-				AddGridRow(g, key, value);
+				AddGridRow(g, key, file);
 		}
 
-		private void AddGridRow(DataGridView g, string key, string value)
+		private void AddGridRow(DataGridView g, string key, FileInfo file)
 		{
-			var temp = new FileInfo(value);
-			g.Rows.Add(key, Path.GetFileName(value), _fileDict[key].Count, temp.Length/1048576m);
+			var temp = new FileInfo(file.FullName);
+			g.Rows.Add(key, Path.GetFileName(file.FullName), _fileDict[key].Count, temp.Length/1024m);
 		}		
 
 		private void ThreadSafe_IncGridRowCount(DataGridView g, string key)
@@ -79,7 +79,7 @@ namespace DuplicateFinder
 		}
 		private void IncGridRowCount(DataGridView g, string key)
 		{
-			var index = RKey(key);
+			var index = GridIndexFromKey(key);
 			g.Rows[index].Cells[2].Value =
 					(Convert.ToInt32(g.Rows[index].Cells[2].Value) + 1);
 		}

@@ -43,10 +43,6 @@
 			this.txtTotalFolders = new System.Windows.Forms.TextBox();
 			this.lblDirectoriesFound = new System.Windows.Forms.Label();
 			this.dgrdFileDuplicates = new System.Windows.Forms.DataGridView();
-			this.gridColKey = new System.Windows.Forms.DataGridViewTextBoxColumn();
-			this.gridColFileName = new System.Windows.Forms.DataGridViewTextBoxColumn();
-			this.gridColCount = new System.Windows.Forms.DataGridViewTextBoxColumn();
-			this.gridColSize = new System.Windows.Forms.DataGridViewTextBoxColumn();
 			this.dgrdFileList = new System.Windows.Forms.DataGridView();
 			this.gridColFullPath = new System.Windows.Forms.DataGridViewTextBoxColumn();
 			this.groupBox1 = new System.Windows.Forms.GroupBox();
@@ -60,6 +56,12 @@
 			this.gridColSubFolderCount = new System.Windows.Forms.DataGridViewTextBoxColumn();
 			this.gridColFolderCount = new System.Windows.Forms.DataGridViewTextBoxColumn();
 			this.progbarFiles = new System.Windows.Forms.ProgressBar();
+			this.chkSkipEmptyFiles = new System.Windows.Forms.CheckBox();
+			this.chkUseMultithreading = new System.Windows.Forms.CheckBox();
+			this.gridColKey = new System.Windows.Forms.DataGridViewTextBoxColumn();
+			this.gridColFileName = new System.Windows.Forms.DataGridViewTextBoxColumn();
+			this.gridColCount = new System.Windows.Forms.DataGridViewTextBoxColumn();
+			this.gridColSize = new System.Windows.Forms.DataGridViewTextBoxColumn();
 			this.ctxMenuDir.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.dgrdFileDuplicates)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.dgrdFileList)).BeginInit();
@@ -77,7 +79,7 @@
 			this.lstDirectories.Location = new System.Drawing.Point(18, 18);
 			this.lstDirectories.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
 			this.lstDirectories.Name = "lstDirectories";
-			this.lstDirectories.Size = new System.Drawing.Size(592, 204);
+			this.lstDirectories.Size = new System.Drawing.Size(592, 164);
 			this.lstDirectories.TabIndex = 1;
 			this.lstDirectories.MouseDown += new System.Windows.Forms.MouseEventHandler(this.lstDirectories_MouseDown);
 			// 
@@ -110,19 +112,19 @@
             this.addDirectoryToolStripMenuItem,
             this.removeDirectoryToolStripMenuItem});
 			this.ctxMenuDir.Name = "ctxMenuDir";
-			this.ctxMenuDir.Size = new System.Drawing.Size(310, 64);
+			this.ctxMenuDir.Size = new System.Drawing.Size(297, 64);
 			// 
 			// addDirectoryToolStripMenuItem
 			// 
 			this.addDirectoryToolStripMenuItem.Name = "addDirectoryToolStripMenuItem";
-			this.addDirectoryToolStripMenuItem.Size = new System.Drawing.Size(309, 30);
+			this.addDirectoryToolStripMenuItem.Size = new System.Drawing.Size(296, 30);
 			this.addDirectoryToolStripMenuItem.Text = "Add Directory";
 			this.addDirectoryToolStripMenuItem.Click += new System.EventHandler(this.addDirectoryToolStripMenuItem_Click);
 			// 
 			// removeDirectoryToolStripMenuItem
 			// 
 			this.removeDirectoryToolStripMenuItem.Name = "removeDirectoryToolStripMenuItem";
-			this.removeDirectoryToolStripMenuItem.Size = new System.Drawing.Size(309, 30);
+			this.removeDirectoryToolStripMenuItem.Size = new System.Drawing.Size(296, 30);
 			this.removeDirectoryToolStripMenuItem.Text = "Remove Selected Directory";
 			this.removeDirectoryToolStripMenuItem.Click += new System.EventHandler(this.removeDirectoryToolStripMenuItem_Click);
 			// 
@@ -186,43 +188,6 @@
 			this.dgrdFileDuplicates.Size = new System.Drawing.Size(579, 545);
 			this.dgrdFileDuplicates.TabIndex = 8;
 			this.dgrdFileDuplicates.RowEnter += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgrdFileDuplicates_RowEnter);
-			// 
-			// gridColKey
-			// 
-			dataGridViewCellStyle1.NullValue = null;
-			this.gridColKey.DefaultCellStyle = dataGridViewCellStyle1;
-			this.gridColKey.HeaderText = "";
-			this.gridColKey.Name = "gridColKey";
-			this.gridColKey.ReadOnly = true;
-			this.gridColKey.Visible = false;
-			// 
-			// gridColFileName
-			// 
-			this.gridColFileName.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
-			this.gridColFileName.HeaderText = "File Name";
-			this.gridColFileName.Name = "gridColFileName";
-			this.gridColFileName.ReadOnly = true;
-			this.gridColFileName.Resizable = System.Windows.Forms.DataGridViewTriState.False;
-			// 
-			// gridColCount
-			// 
-			dataGridViewCellStyle2.NullValue = null;
-			this.gridColCount.DefaultCellStyle = dataGridViewCellStyle2;
-			this.gridColCount.HeaderText = "Count";
-			this.gridColCount.Name = "gridColCount";
-			this.gridColCount.ReadOnly = true;
-			this.gridColCount.Resizable = System.Windows.Forms.DataGridViewTriState.False;
-			this.gridColCount.Width = 50;
-			// 
-			// gridColSize
-			// 
-			dataGridViewCellStyle3.Format = "N4";
-			dataGridViewCellStyle3.NullValue = null;
-			this.gridColSize.DefaultCellStyle = dataGridViewCellStyle3;
-			this.gridColSize.HeaderText = "Size (MB)";
-			this.gridColSize.Name = "gridColSize";
-			this.gridColSize.ReadOnly = true;
-			this.gridColSize.Resizable = System.Windows.Forms.DataGridViewTriState.False;
 			// 
 			// dgrdFileList
 			// 
@@ -355,11 +320,70 @@
 			this.progbarFiles.Size = new System.Drawing.Size(308, 27);
 			this.progbarFiles.TabIndex = 12;
 			// 
+			// chkSkipEmptyFiles
+			// 
+			this.chkSkipEmptyFiles.AutoSize = true;
+			this.chkSkipEmptyFiles.Location = new System.Drawing.Point(18, 191);
+			this.chkSkipEmptyFiles.Name = "chkSkipEmptyFiles";
+			this.chkSkipEmptyFiles.Size = new System.Drawing.Size(167, 24);
+			this.chkSkipEmptyFiles.TabIndex = 13;
+			this.chkSkipEmptyFiles.Text = "Ignore Empty Files";
+			this.chkSkipEmptyFiles.UseVisualStyleBackColor = true;
+			// 
+			// chkUseMultithreading
+			// 
+			this.chkUseMultithreading.AutoSize = true;
+			this.chkUseMultithreading.Location = new System.Drawing.Point(301, 190);
+			this.chkUseMultithreading.Name = "chkUseMultithreading";
+			this.chkUseMultithreading.Size = new System.Drawing.Size(309, 24);
+			this.chkUseMultithreading.TabIndex = 14;
+			this.chkUseMultithreading.Text = "Use Multithreading for File Comparison";
+			this.chkUseMultithreading.UseVisualStyleBackColor = true;
+			// 
+			// gridColKey
+			// 
+			dataGridViewCellStyle1.NullValue = null;
+			this.gridColKey.DefaultCellStyle = dataGridViewCellStyle1;
+			this.gridColKey.HeaderText = "";
+			this.gridColKey.Name = "gridColKey";
+			this.gridColKey.ReadOnly = true;
+			this.gridColKey.Visible = false;
+			// 
+			// gridColFileName
+			// 
+			this.gridColFileName.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
+			this.gridColFileName.HeaderText = "File Name";
+			this.gridColFileName.Name = "gridColFileName";
+			this.gridColFileName.ReadOnly = true;
+			this.gridColFileName.Resizable = System.Windows.Forms.DataGridViewTriState.False;
+			// 
+			// gridColCount
+			// 
+			dataGridViewCellStyle2.NullValue = null;
+			this.gridColCount.DefaultCellStyle = dataGridViewCellStyle2;
+			this.gridColCount.HeaderText = "Count";
+			this.gridColCount.Name = "gridColCount";
+			this.gridColCount.ReadOnly = true;
+			this.gridColCount.Resizable = System.Windows.Forms.DataGridViewTriState.False;
+			this.gridColCount.Width = 50;
+			// 
+			// gridColSize
+			// 
+			dataGridViewCellStyle3.Format = "N4";
+			dataGridViewCellStyle3.NullValue = null;
+			this.gridColSize.DefaultCellStyle = dataGridViewCellStyle3;
+			this.gridColSize.HeaderText = "Size (KB)";
+			this.gridColSize.Name = "gridColSize";
+			this.gridColSize.ReadOnly = true;
+			this.gridColSize.Resizable = System.Windows.Forms.DataGridViewTriState.False;
+			// 
 			// Form1
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.ClientSize = new System.Drawing.Size(1488, 1062);
+			this.Controls.Add(this.chkUseMultithreading);
+			this.Controls.Add(this.chkSkipEmptyFiles);
 			this.Controls.Add(this.progbarFiles);
 			this.Controls.Add(this.tabCtlDuplicates);
 			this.Controls.Add(this.lblDirectoriesFound);
@@ -402,10 +426,6 @@
 		private System.Windows.Forms.DataGridView dgrdFileDuplicates;
 		private System.Windows.Forms.DataGridView dgrdFileList;
 		private System.Windows.Forms.DataGridViewTextBoxColumn gridColFullPath;
-		private System.Windows.Forms.DataGridViewTextBoxColumn gridColKey;
-		private System.Windows.Forms.DataGridViewTextBoxColumn gridColFileName;
-		private System.Windows.Forms.DataGridViewTextBoxColumn gridColCount;
-		private System.Windows.Forms.DataGridViewTextBoxColumn gridColSize;
 		private System.Windows.Forms.GroupBox groupBox1;
 		private System.Windows.Forms.TabControl tabCtlDuplicates;
 		private System.Windows.Forms.TabPage tabFiles;
@@ -417,6 +437,12 @@
 		private System.Windows.Forms.DataGridViewTextBoxColumn gridColSubFolderCount;
 		private System.Windows.Forms.DataGridViewTextBoxColumn gridColFolderCount;
 		private System.Windows.Forms.ProgressBar progbarFiles;
+		private System.Windows.Forms.CheckBox chkSkipEmptyFiles;
+		private System.Windows.Forms.CheckBox chkUseMultithreading;
+		private System.Windows.Forms.DataGridViewTextBoxColumn gridColKey;
+		private System.Windows.Forms.DataGridViewTextBoxColumn gridColFileName;
+		private System.Windows.Forms.DataGridViewTextBoxColumn gridColCount;
+		private System.Windows.Forms.DataGridViewTextBoxColumn gridColSize;
 	}
 }
 

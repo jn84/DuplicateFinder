@@ -9,32 +9,59 @@ namespace DuplicateFinder
 {
 	internal class FileDictionary : IEnumerable<List<string>>
 	{
-		private const bool _isUseMultiThreading = true;
+		private readonly bool _isUsingMultithreading;
+		private readonly bool _isSkipEmptyFiles;
 
-		private MD5 hasher;
+		public ConcurrentQueue<Tuple<string, FileInfo>> FilesHashedQueue { get; } = new ConcurrentQueue<Tuple<string, FileInfo>>();
+
+		//private MD5 hasher;
 		private Dictionary<string, List<string>> _storage = new Dictionary<string, List<string>>();
 		private ConcurrentDictionary<string , List<string>> _concurrentStorage = new ConcurrentDictionary<string, List<string>>();
-		
+
 		// TODO: File sizes should be compared before we spend the time calculating MD5
 		// TODO: Additionally, the option to require matching file names should be added
 
-		public List<string> this[string key]
+		public FileDictionary(bool isUsingMultithreading, bool isSkipEmptyFiles)
 		{
-			get { return _storage[key]; }
-			set { _storage[key] = value; }
+			_isUsingMultithreading = isUsingMultithreading;
+			_isSkipEmptyFiles = isSkipEmptyFiles;
 		}
 
-		public string LastKey { get; private set; }
-
-		public void Add(string filePath)
+		public bool TryGetNextKey(out Tuple<string, FileInfo> result)
 		{
-			hasher = new MD5CryptoServiceProvider();
+			return FilesHashedQueue.TryDequeue(out result);
+		}
+
+		public List<string> this[string key]
+		{
+			get
+			{
+				return _isUsingMultithreading ? _concurrentStorage[key] : _storage[key];
+			}
+			set
+			{
+				if (_isUsingMultithreading)
+					_concurrentStorage[key] = value;
+				else
+					_storage[key] = value;
+			}
+		}
+
+		public void Add(FileInfo fInfo)
+		{
+			var hasher = new MD5CryptoServiceProvider();
 			try
 			{
-				var inputFileInfo = new FileInfo(filePath);
-				File.SetAttributes(filePath, FileAttributes.Normal);
+				if (_isSkipEmptyFiles && fInfo.Length.Equals(0))
+				{
+					Console.WriteLine(fInfo.FullName + @" : " + fInfo.Length);
+					return;
+				}
 
-				if (inputFileInfo.Length > 10485760)
+				// Don't like this. Why was it here? TBD
+				//File.SetAttributes(filePath, FileAttributes.Normal);
+
+				if (fInfo.Length > 10485760)
 				{
 					const long bytesToRead = 10485760;
 					const int bufferSize = 1048576;
@@ -43,7 +70,7 @@ namespace DuplicateFinder
 					var r = -1;
 					byte[] buffer = new byte[bufferSize];
 
-					using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
+					using (var stream = new FileStream(fInfo.FullName, FileMode.Open, FileAccess.Read))
 					{
 						while (read <= bytesToRead && r != 0)
 						{
@@ -55,31 +82,53 @@ namespace DuplicateFinder
 				}
 				else
 				{
-					using (Stream inputFile = File.Open(filePath, FileMode.Open))
+					using (Stream inputFile = File.Open(fInfo.FullName, FileMode.Open))
 					{
 						hasher.ComputeHash(inputFile);
 					}
 				}
 			}
-			catch (IOException) { return; }
-			
-			LastKey = BitConverter.ToString(hasher.Hash);
+			catch (IOException)
+			{
+				Console.WriteLine(@"IOException: Add method");
+				return;
+			}
+
+			string key = BitConverter.ToString(hasher.Hash);
 
 			List<string> targetList;
 
-			if (_storage.ContainsKey(LastKey))
+			if (_isUsingMultithreading)
 			{
-				_storage.TryGetValue(LastKey, out targetList);
-				targetList.Add(filePath);
-				return;
+				if (_concurrentStorage.ContainsKey(key))
+				{
+					_concurrentStorage.TryGetValue(key, out targetList);
+					targetList?.Add(fInfo.FullName);
+					return;
+				}
+				targetList = new List<string> { fInfo.FullName };
+				_concurrentStorage.TryAdd(key, targetList);
 			}
-			targetList = new List<string> { filePath };
-			_storage.Add(LastKey, targetList);
+			else
+			{ 
+				if (_storage.ContainsKey(key))
+				{
+					_storage.TryGetValue(key, out targetList);
+					targetList?.Add(fInfo.FullName);
+					return;
+				}
+				targetList = new List<string> { fInfo.FullName };
+				_storage.Add(key, targetList);
+			}
+
+			FilesHashedQueue.Enqueue(Tuple.Create(key, fInfo));
 		}
 
 		public IEnumerator<List<string>> GetEnumerator()
 		{
-			return _storage.Values.GetEnumerator();
+			return _isUsingMultithreading ? 
+				_concurrentStorage.Values.GetEnumerator() : 
+				_storage.Values.GetEnumerator();
 		}
 		
 		IEnumerator IEnumerable.GetEnumerator() { return GetEnumerator(); }

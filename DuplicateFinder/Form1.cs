@@ -11,11 +11,15 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Collections.Concurrent;
 
 namespace DuplicateFinder
 {
 	public partial class Form1 : Form
 	{
+		// For eliminating LastKey
+		public ConcurrentQueue<string> ProcessedFileQueue { get; } = new ConcurrentQueue<string>();
+
 		private readonly List<string> _searchDirectoriesList = new List<string>();
 		private readonly List<string> _includedExtensionsList = new List<string>();
 		private List<DirectoryInfo> _fullDirectoryList;
@@ -90,37 +94,77 @@ namespace DuplicateFinder
 					ThreadSafe_SetTextboxText(txtTotalFolders, _fullDirectoryList.Count.ToString());
 					ThreadSafe_SetTextboxText(txtTotalFiles, _totalFilesCount.ToString());
 				}
+				catch (PathTooLongException) { /* This is, as of commit #4, an unrecoverable error. Will keep an eye out for potential workarounds */ }
 				catch (UnauthorizedAccessException) { }
 				
 			}
+
+			// Performance tracking code
+			Console.WriteLine("Starting stopwatch");
+			var stopwatch = new Stopwatch();
+			stopwatch.Start();
+			
+
 			BuildFileDictionary();
+
+		
+			stopwatch.Stop();
+			Console.WriteLine(@"Method took " + stopwatch.Elapsed.TotalSeconds + @" seconds to complete");
 		}
 
+
+		// Add a file to the file dictionary
 		private void BuildFileDictionary()
 		{
-			_fileDict = new FileDictionary();
+
+
+			_fileDict = new FileDictionary(chkSkipEmptyFiles.Checked, chkUseMultithreading.Checked);
+
 			foreach (DirectoryInfo dirElem in _fullDirectoryList)
 			{
 				try
 				{
-					foreach (FileInfo fElem in SelectExtensions(dirElem.GetFiles().ToList()))
-					{
-						try
+					if (chkUseMultithreading.Checked)
+					{ 
+						Parallel.ForEach(dirElem.GetFiles().ToList(), fElem =>
 						{
-							_fileDict.Add(fElem.FullName);
-							AddToDataGrid(_fileDict.LastKey, fElem.FullName);
+							_fileDict.Add(fElem);
+							_filesProcessedCount++;
+							//ThreadSafe_SetTextboxText(txtTotalFiles, _totalFilesCount.ToString()); // Redundant unless changed
+							ThreadSafe_SetProgressBar(progbarFiles, _filesProcessedCount, _totalFilesCount);
+						});
+					}
+					else
+					{
+						foreach (FileInfo fElem in dirElem.GetFiles().ToList())
+						{
+							_fileDict.Add(fElem);
 							_filesProcessedCount++;
 							//ThreadSafe_SetTextboxText(txtTotalFiles, _totalFilesCount.ToString()); // Redundant unless changed
 							ThreadSafe_SetProgressBar(progbarFiles, _filesProcessedCount, _totalFilesCount);
 						}
-						catch (PathTooLongException) { }
 					}
+					
 				}
+				catch (PathTooLongException) { /* This is, as of commit #4, an unrecoverable error. Will keep an eye out for potential workarounds */ }
 				catch (UnauthorizedAccessException) { }
+
+				Thread dataGribPopulater = new Thread(PopulateDataGrid);
+				dataGribPopulater.Start();
 			}
 			ThreadSafe_EnableControl(btnFindDupes, true);
 		}
 
+		private void PopulateDataGrid()
+		{
+			Tuple<string, FileInfo> fileToProcess;
+			while (_fileDict.TryGetNextKey(out fileToProcess))
+			{
+				AddToDataGrid(fileToProcess.Item1, fileToProcess.Item2);
+			}
+		}
+
+		// Currently unused
 		private IEnumerable<FileInfo> SelectExtensions(IList<FileInfo> input)
 		{
 			if (_includedExtensionsList.Count.Equals(0))
@@ -132,7 +176,7 @@ namespace DuplicateFinder
 					if (!_includedExtensionsList.Contains(Path.GetExtension(input[i].FullName)))
 						input.RemoveAt(i);
 				}
-				catch (PathTooLongException)
+				catch (PathTooLongException e)
 				{
 					// Can something be done?
 					// FileInfo t = new FileInfo("\\?\\" +);
@@ -142,21 +186,44 @@ namespace DuplicateFinder
 			return input;
 		}
 
-		private int RKey(string key)
+		private int GridIndexFromKey(string key)
 		{
-			var d = dgrdFileDuplicates.Rows
-				.Cast<DataGridViewRow>()
-				.First(r => r.Cells["gridColKey"].Value.ToString().Equals(key));
+			try
+			{
+				var d = dgrdFileDuplicates.Rows
+					.Cast<DataGridViewRow>()
+					.First(r => r.Cells["gridColKey"].Value.ToString().Equals(key));
 
-			return d.Index;
+				return d.Index;
+			}
+			catch (InvalidOperationException e)
+			{
+				return -1;
+			}
+
 		}
 
-		private void AddToDataGrid(string lastKey, string value)
+
+		// TODO: Instead of using lastkey, should use a queue. // Add each file to the queue to be processed. // This will solve threading problems arising from concurrent file processing
+
+		// Add a file to the data grid
+		// If the file in question has no duplicates (duplicate count is less than 2)
+		//		do nothing and return
+		// If the file in question has exactly one duplicate (duplicate count is exactly 2)
+		//		Add the row to the datagridview control
+		// If the previous two conditions are not met, the file must already be in the datagridview control, and has at least two duplicates
+		//		Increment the duplicate count
+		// End method
+
+		private void AddToDataGrid(string lastKey, FileInfo file)
 		{
 			if (_fileDict[lastKey].Count < 2)
 				return;
-			if (_fileDict[lastKey].Count.Equals(2))
-				ThreadSafe_AddGridRow(dgrdFileDuplicates, lastKey, value);
+
+			// Due to threading,
+
+			if (GridIndexFromKey(lastKey) == -1)
+				ThreadSafe_AddGridRow(dgrdFileDuplicates, lastKey, file);
 			else
 				ThreadSafe_IncGridRowCount(dgrdFileDuplicates, lastKey);
 		}
