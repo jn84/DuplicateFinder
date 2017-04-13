@@ -118,39 +118,26 @@ namespace DuplicateFinder
 		{
 
 
-			_fileDict = new FileDictionary(chkSkipEmptyFiles.Checked, chkUseMultithreading.Checked);
+			_fileDict = new FileDictionary(chkSkipEmptyFiles.Checked);
 
 			foreach (DirectoryInfo dirElem in _fullDirectoryList)
 			{
 				try
 				{
-					if (chkUseMultithreading.Checked)
-					{ 
-						Parallel.ForEach(dirElem.GetFiles().ToList(), fElem =>
-						{
-							_fileDict.Add(fElem);
-							_filesProcessedCount++;
-							//ThreadSafe_SetTextboxText(txtTotalFiles, _totalFilesCount.ToString()); // Redundant unless changed
-							ThreadSafe_SetProgressBar(progbarFiles, _filesProcessedCount, _totalFilesCount);
-						});
-					}
-					else
+					Parallel.ForEach(dirElem.GetFiles().ToList(), fElem =>
 					{
-						foreach (FileInfo fElem in dirElem.GetFiles().ToList())
-						{
-							_fileDict.Add(fElem);
-							_filesProcessedCount++;
-							//ThreadSafe_SetTextboxText(txtTotalFiles, _totalFilesCount.ToString()); // Redundant unless changed
-							ThreadSafe_SetProgressBar(progbarFiles, _filesProcessedCount, _totalFilesCount);
-						}
-					}
+						_fileDict.Add(fElem);
+						_filesProcessedCount++;
+						//ThreadSafe_SetTextboxText(txtTotalFiles, _totalFilesCount.ToString()); // Redundant unless changed
+						ThreadSafe_SetProgressBar(progbarFiles, _filesProcessedCount, _totalFilesCount);
+					});
 					
 				}
 				catch (PathTooLongException) { /* This is, as of commit #4, an unrecoverable error. Will keep an eye out for potential workarounds */ }
 				catch (UnauthorizedAccessException) { }
 
-				Thread dataGribPopulater = new Thread(PopulateDataGrid);
-				dataGribPopulater.Start();
+				Thread dataGridPopulater = new Thread(PopulateDataGrid);
+				dataGridPopulater.Start();
 			}
 			ThreadSafe_EnableControl(btnFindDupes, true);
 		}

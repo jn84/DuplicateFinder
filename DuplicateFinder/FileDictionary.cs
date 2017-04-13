@@ -9,21 +9,19 @@ namespace DuplicateFinder
 {
 	internal class FileDictionary : IEnumerable<List<string>>
 	{
-		private readonly bool _isUsingMultithreading;
 		private readonly bool _isSkipEmptyFiles;
 
 		public ConcurrentQueue<Tuple<string, FileInfo>> FilesHashedQueue { get; } = new ConcurrentQueue<Tuple<string, FileInfo>>();
 
-		//private MD5 hasher;
-		private Dictionary<string, List<string>> _storage = new Dictionary<string, List<string>>();
+		private ConcurrentDictionary<long, List<FileInfo>> _fileSizeStorage = new ConcurrentDictionary<long, List<FileInfo>>();
+
 		private ConcurrentDictionary<string , List<string>> _concurrentStorage = new ConcurrentDictionary<string, List<string>>();
 
 		// TODO: File sizes should be compared before we spend the time calculating MD5
 		// TODO: Additionally, the option to require matching file names should be added
 
-		public FileDictionary(bool isUsingMultithreading, bool isSkipEmptyFiles)
+		public FileDictionary(bool isSkipEmptyFiles)
 		{
-			_isUsingMultithreading = isUsingMultithreading;
 			_isSkipEmptyFiles = isSkipEmptyFiles;
 		}
 
@@ -36,14 +34,11 @@ namespace DuplicateFinder
 		{
 			get
 			{
-				return _isUsingMultithreading ? _concurrentStorage[key] : _storage[key];
+				return _concurrentStorage[key];
 			}
 			set
 			{
-				if (_isUsingMultithreading)
-					_concurrentStorage[key] = value;
-				else
-					_storage[key] = value;
+				_concurrentStorage[key] = value;
 			}
 		}
 
@@ -54,11 +49,13 @@ namespace DuplicateFinder
 			{
 				if (_isSkipEmptyFiles && fInfo.Length.Equals(0))
 				{
-					Console.WriteLine(fInfo.FullName + @" : " + fInfo.Length);
+					//Console.WriteLine(fInfo.FullName + @" : " + fInfo.Length);
 					return;
 				}
 
 				// Don't like this. Why was it here? TBD
+				// We Shouldn't be modifying the attributes of file processed..
+				// Must have been one of my stupid SO finds to solve some issue
 				//File.SetAttributes(filePath, FileAttributes.Normal);
 
 				if (fInfo.Length > 10485760)
@@ -88,9 +85,15 @@ namespace DuplicateFinder
 					}
 				}
 			}
-			catch (IOException)
+			catch (UnauthorizedAccessException e)
 			{
-				Console.WriteLine(@"IOException: Add method");
+				Console.WriteLine(@"*** Isufficient priveleges to process " + fInfo.FullName + @"n     Skipping file.");
+				return;
+			}
+
+			catch (IOException e)
+			{
+				Console.WriteLine(@"*** IOException: Add method caused a problem: " + e.Message);
 				return;
 			}
 
@@ -98,37 +101,23 @@ namespace DuplicateFinder
 
 			List<string> targetList;
 
-			if (_isUsingMultithreading)
+			if (_concurrentStorage.ContainsKey(key))
 			{
-				if (_concurrentStorage.ContainsKey(key))
-				{
-					_concurrentStorage.TryGetValue(key, out targetList);
-					targetList?.Add(fInfo.FullName);
-					return;
-				}
-				targetList = new List<string> { fInfo.FullName };
-				_concurrentStorage.TryAdd(key, targetList);
+				_concurrentStorage.TryGetValue(key, out targetList);
+				if (targetList != null)
+					//lock (targetList)					
+						targetList.Add(fInfo.FullName);
+				return;
 			}
-			else
-			{ 
-				if (_storage.ContainsKey(key))
-				{
-					_storage.TryGetValue(key, out targetList);
-					targetList?.Add(fInfo.FullName);
-					return;
-				}
-				targetList = new List<string> { fInfo.FullName };
-				_storage.Add(key, targetList);
-			}
+			targetList = new List<string> { fInfo.FullName };
+			_concurrentStorage.TryAdd(key, targetList);
 
 			FilesHashedQueue.Enqueue(Tuple.Create(key, fInfo));
 		}
 
 		public IEnumerator<List<string>> GetEnumerator()
 		{
-			return _isUsingMultithreading ? 
-				_concurrentStorage.Values.GetEnumerator() : 
-				_storage.Values.GetEnumerator();
+			return _concurrentStorage.Values.GetEnumerator();
 		}
 		
 		IEnumerator IEnumerable.GetEnumerator() { return GetEnumerator(); }
