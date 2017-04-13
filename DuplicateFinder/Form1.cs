@@ -48,8 +48,8 @@ namespace DuplicateFinder
 
 		private void btnFindDupes_Click(object sender, EventArgs e)
 		{
-			var build = new Thread(BuildDirectoryList);
-			btnFindDupes.Enabled = false;
+			UserInterfaceInteractable(false);
+			var build = new Thread(RunCompare);
 			build.Start();
 		}
 
@@ -78,13 +78,21 @@ namespace DuplicateFinder
 				Console.WriteLine(elem);
 		}
 
+		private void RunCompare()
+		{
+			
+		}
+
+
+		// TODO: Getting the list of directories/files can be threaded. Should perhaps be moved into FileDictionary. The form doesn't need to handle this. We will however need to relay information back to the form.
 		private void BuildDirectoryList()
 		{
+			// Add the initial list of directories to the dictionary. This is the list of directories added by the user and show in the listbox
 			_fullDirectoryList = new List<DirectoryInfo>();
 			foreach (string elem in _searchDirectoriesList)
 				_fullDirectoryList.Add(new DirectoryInfo(elem));
 
-			// Do not use foreach since the collection is modified within the loop
+			// Do not use foreach since the collection is modified within the loop. Since I keep trying to convert it...
 			for (int i = 0; i < _fullDirectoryList.Count; i++)
 			{
 				try
@@ -94,7 +102,7 @@ namespace DuplicateFinder
 					ThreadSafe_SetTextboxText(txtTotalFolders, _fullDirectoryList.Count.ToString());
 					ThreadSafe_SetTextboxText(txtTotalFiles, _totalFilesCount.ToString());
 				}
-				catch (PathTooLongException) { /* This is, as of commit #4, an unrecoverable error. Will keep an eye out for potential workarounds */ }
+				catch (PathTooLongException) { /* This is, as of commit #4, an unfixable error. Will keep an eye out for potential workarounds. */ }
 				catch (UnauthorizedAccessException) { }
 				
 			}
@@ -116,8 +124,6 @@ namespace DuplicateFinder
 		// Add a file to the file dictionary
 		private void BuildFileDictionary()
 		{
-
-
 			_fileDict = new FileDictionary(chkSkipEmptyFiles.Checked);
 
 			foreach (DirectoryInfo dirElem in _fullDirectoryList)
@@ -140,6 +146,26 @@ namespace DuplicateFinder
 				dataGridPopulater.Start();
 			}
 			ThreadSafe_EnableControl(btnFindDupes, true);
+		}
+
+		/*
+		 * Placeholder methods for sending information to/updating the UI.
+		 * 
+		public void UpdateProgressBar(int countCompleted, int totalCount)
+		{
+			
+		}
+
+		public void UpdateDirectory_FileCounts(int directoryCount, int fileCount)
+		{
+			
+		}
+
+		*/
+		private void UserInterfaceInteractable(bool canInteract)
+		{
+			btnFindDupes.Enabled = canInteract;
+			btnAddDirectory.Enabled = canInteract;
 		}
 
 		private void PopulateDataGrid()

@@ -13,8 +13,10 @@ namespace DuplicateFinder
 
 		public ConcurrentQueue<Tuple<string, FileInfo>> FilesHashedQueue { get; } = new ConcurrentQueue<Tuple<string, FileInfo>>();
 
+		// Initial comparison of file sizes
 		private ConcurrentDictionary<long, List<FileInfo>> _fileSizeStorage = new ConcurrentDictionary<long, List<FileInfo>>();
 
+		// Secondary comparison of equal sized files
 		private ConcurrentDictionary<string , List<string>> _concurrentStorage = new ConcurrentDictionary<string, List<string>>();
 
 		// TODO: File sizes should be compared before we spend the time calculating MD5
