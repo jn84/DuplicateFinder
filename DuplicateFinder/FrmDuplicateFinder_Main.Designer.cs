@@ -1,6 +1,6 @@
 ﻿namespace DuplicateFinder
 {
-	partial class Form1
+	partial class FrmDuplicateFinder_Main
 	{
 		/// <summary>
 		/// Required designer variable.
@@ -366,7 +366,7 @@
 			this.chkSkipEmptyFiles.Text = "Ignore Empty Files";
 			this.chkSkipEmptyFiles.UseVisualStyleBackColor = true;
 			// 
-			// Form1
+			// FrmDuplicateFinder_Main
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -383,8 +383,8 @@
 			this.Controls.Add(this.lstDirectories);
 			this.Controls.Add(this.groupBox1);
 			this.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
-			this.Name = "Form1";
-			this.Text = "Form1";
+			this.Name = "FrmDuplicateFinder_Main";
+			this.Text = "FrmDuplicateFinder_Main";
 			this.Load += new System.EventHandler(this.Form1_Load);
 			this.ctxMenuDir.ResumeLayout(false);
 			((System.ComponentModel.ISupportInitialize)(this.dgrdFileDuplicates)).EndInit();

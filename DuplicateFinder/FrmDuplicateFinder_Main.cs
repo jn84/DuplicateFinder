@@ -15,7 +15,7 @@ using System.Collections.Concurrent;
 
 namespace DuplicateFinder
 {
-	public partial class Form1 : Form
+	public partial class FrmDuplicateFinder_Main : Form
 	{
 		// For eliminating LastKey
 		public ConcurrentQueue<string> ProcessedFileQueue { get; } = new ConcurrentQueue<string>();
@@ -25,10 +25,7 @@ namespace DuplicateFinder
 		private List<DirectoryInfo> _fullDirectoryList;
 		private FileDictionary _fileDict;
 
-		private int _filesProcessedCount = 0,   //
-		            _totalFilesCount = 0;		// For use with progress bar
-
-		public Form1()
+		public FrmDuplicateFinder_Main()
 		{
 			InitializeComponent();
 		}
@@ -54,7 +51,6 @@ namespace DuplicateFinder
 		}
 
 		//// Context menu code
-
 		private void lstDirectories_MouseDown(object sender, MouseEventArgs e)
 		{
 			lstDirectories.SelectedIndex = lstDirectories.IndexFromPoint(e.X, e.Y);
@@ -77,95 +73,27 @@ namespace DuplicateFinder
 			foreach (string elem in _searchDirectoriesList)
 				Console.WriteLine(elem);
 		}
+		//// End context menu code 
 
+
+		// Execute comparison of files/folders
 		private void RunCompare()
 		{
-			
+			List<string> dirList = lstDirectories.Items.Cast<string>().ToList();
+			_fileDict.BuildDirectoryList(dirList);
+
+			_fileDict.BuildFileDictionary();
 		}
 
-
-		// TODO: Getting the list of directories/files can be threaded. Should perhaps be moved into FileDictionary. The form doesn't need to handle this. We will however need to relay information back to the form.
-		private void BuildDirectoryList()
-		{
-			// Add the initial list of directories to the dictionary. This is the list of directories added by the user and show in the listbox
-			_fullDirectoryList = new List<DirectoryInfo>();
-			foreach (string elem in _searchDirectoriesList)
-				_fullDirectoryList.Add(new DirectoryInfo(elem));
-
-			// Do not use foreach since the collection is modified within the loop. Since I keep trying to convert it...
-			for (int i = 0; i < _fullDirectoryList.Count; i++)
-			{
-				try
-				{
-					_totalFilesCount += _fullDirectoryList[i].GetFiles().Length; 
-					_fullDirectoryList.AddRange(_fullDirectoryList[i].GetDirectories());
-					ThreadSafe_SetTextboxText(txtTotalFolders, _fullDirectoryList.Count.ToString());
-					ThreadSafe_SetTextboxText(txtTotalFiles, _totalFilesCount.ToString());
-				}
-				catch (PathTooLongException) { /* This is, as of commit #4, an unfixable error. Will keep an eye out for potential workarounds. */ }
-				catch (UnauthorizedAccessException) { }
-				
-			}
-
-			// Performance tracking code
-			Console.WriteLine("Starting stopwatch");
-			var stopwatch = new Stopwatch();
-			stopwatch.Start();
-			
-
-			BuildFileDictionary();
-
-		
-			stopwatch.Stop();
-			Console.WriteLine(@"Method took " + stopwatch.Elapsed.TotalSeconds + @" seconds to complete");
-		}
-
-
-		// Add a file to the file dictionary
-		private void BuildFileDictionary()
-		{
-			_fileDict = new FileDictionary(chkSkipEmptyFiles.Checked);
-
-			foreach (DirectoryInfo dirElem in _fullDirectoryList)
-			{
-				try
-				{
-					Parallel.ForEach(dirElem.GetFiles().ToList(), fElem =>
-					{
-						_fileDict.Add(fElem);
-						_filesProcessedCount++;
-						//ThreadSafe_SetTextboxText(txtTotalFiles, _totalFilesCount.ToString()); // Redundant unless changed
-						ThreadSafe_SetProgressBar(progbarFiles, _filesProcessedCount, _totalFilesCount);
-					});
-					
-				}
-				catch (PathTooLongException) { /* This is, as of commit #4, an unrecoverable error. Will keep an eye out for potential workarounds */ }
-				catch (UnauthorizedAccessException) { }
-
-				Thread dataGridPopulater = new Thread(PopulateDataGrid);
-				dataGridPopulater.Start();
-			}
-			ThreadSafe_EnableControl(btnFindDupes, true);
-		}
-
-		/*
-		 * Placeholder methods for sending information to/updating the UI.
-		 * 
 		public void UpdateProgressBar(int countCompleted, int totalCount)
 		{
-			
+			ThreadSafe_SetProgressBar(progbarFiles, countCompleted, totalCount);
 		}
 
 		public void UpdateDirectory_FileCounts(int directoryCount, int fileCount)
 		{
-			
-		}
-
-		*/
-		private void UserInterfaceInteractable(bool canInteract)
-		{
-			btnFindDupes.Enabled = canInteract;
-			btnAddDirectory.Enabled = canInteract;
+			ThreadSafe_SetTextboxText(txtTotalFolders, directoryCount.ToString());
+			ThreadSafe_SetTextboxText(txtTotalFiles, fileCount.ToString());
 		}
 
 		private void PopulateDataGrid()
@@ -175,6 +103,12 @@ namespace DuplicateFinder
 			{
 				AddToDataGrid(fileToProcess.Item1, fileToProcess.Item2);
 			}
+		}
+
+		private void UserInterfaceInteractable(bool canInteract)
+		{
+			btnFindDupes.Enabled = canInteract;
+			btnAddDirectory.Enabled = canInteract;
 		}
 
 		// Currently unused
