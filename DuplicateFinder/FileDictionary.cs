@@ -18,13 +18,15 @@ namespace DuplicateFinder
 
 		private FrmDuplicateFinder_Main _formMain_ref;
 
+		// All files. Maybe skip adding all files to this, and instead add them to _concurrentSizeStorage
 		private ConcurrentBag<FileInfo> _fileBag = new ConcurrentBag<FileInfo>();
 
 		// Initial comparison of file sizes
-		private ConcurrentDictionary<long, List<FileInfo>> _fileSizeStorage = new ConcurrentDictionary<long, List<FileInfo>>();
+		private ConcurrentDictionary<long, List<FileInfo>> _concurrentSizeStorage = new ConcurrentDictionary<long, List<FileInfo>>();
 
 		// Secondary comparison of equal sized files
-		private ConcurrentDictionary<string , List<string>> _concurrentStorage = new ConcurrentDictionary<string, List<string>>();
+
+		public ConcurrentDictionary<string, List<string>> HashedDictionary { get; } = new ConcurrentDictionary<string, List<string>>();
 
 		private List<DirectoryInfo> _fullDirectoryList = new List<DirectoryInfo>();
 		private int _filesProcessedCount = 0,  
@@ -39,15 +41,10 @@ namespace DuplicateFinder
 			_formMain_ref = form;
 		}
 
-		public bool TryGetNextKey(out Tuple<string, FileInfo> result)
-		{
-			return FilesHashedQueue.TryDequeue(out result);
-		}
-
 		public List<string> this[string key]
 		{
-			get => _concurrentStorage[key];
-			set => _concurrentStorage[key] = value;
+			get => HashedDictionary[key];
+			set => HashedDictionary[key] = value;
 		}
 
 		// TODO: Getting the list of directories/files can be threaded. Should perhaps be moved into FileDictionary. The form doesn't need to handle this. We will however need to relay information back to the form.
@@ -154,23 +151,21 @@ namespace DuplicateFinder
 
 			List<string> targetList;
 
-			if (_concurrentStorage.ContainsKey(key))
+			if (HashedDictionary.ContainsKey(key))
 			{
-				_concurrentStorage.TryGetValue(key, out targetList);
+				HashedDictionary.TryGetValue(key, out targetList);
 				if (targetList != null)
 					//lock (targetList)					
 						targetList.Add(fInfo.FullName);
 				return;
 			}
 			targetList = new List<string> { fInfo.FullName };
-			_concurrentStorage.TryAdd(key, targetList);
-
-			FilesHashedQueue.Enqueue(Tuple.Create(key, fInfo));
+			HashedDictionary.TryAdd(key, targetList);
 		}
 
 		public IEnumerator<List<string>> GetEnumerator()
 		{
-			return _concurrentStorage.Values.GetEnumerator();
+			return HashedDictionary.Values.GetEnumerator();
 		}
 		
 		IEnumerator IEnumerable.GetEnumerator() { return GetEnumerator(); }

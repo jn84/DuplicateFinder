@@ -79,10 +79,14 @@ namespace DuplicateFinder
 		// Execute comparison of files/folders
 		private void RunCompare()
 		{
-			List<string> dirList = lstDirectories.Items.Cast<string>().ToList();
-			_fileDict.BuildDirectoryList(dirList);
+			_fileDict = new FileDictionary(chkSkipEmptyFiles.Checked, this);
+
+			_fileDict.BuildDirectoryList(
+				lstDirectories.Items.Cast<string>().ToList());
 
 			_fileDict.BuildFileDictionary();
+
+			PopulateDataGrid();
 		}
 
 		public void UpdateProgressBar(int countCompleted, int totalCount)
@@ -98,10 +102,10 @@ namespace DuplicateFinder
 
 		private void PopulateDataGrid()
 		{
-			Tuple<string, FileInfo> fileToProcess;
-			while (_fileDict.TryGetNextKey(out fileToProcess))
+			ConcurrentDictionary<string, List<string>> ref_hashedDictionary = _fileDict.HashedDictionary;
+			foreach (KeyValuePair<string, List<string>> elem in ref_hashedDictionary)
 			{
-				AddToDataGrid(fileToProcess.Item1, fileToProcess.Item2);
+				AddToDataGrid(elem.Key, new FileInfo(elem.Value.First()));
 			}
 		}
 
