@@ -5,6 +5,7 @@ using System.IO;
 using System.Security.Cryptography;
 using System.Collections.Concurrent;
 using System.Linq;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -16,17 +17,14 @@ namespace DuplicateFinder
 
 		public ConcurrentQueue<Tuple<string, FileInfo>> FilesHashedQueue { get; } = new ConcurrentQueue<Tuple<string, FileInfo>>();
 
-		private FrmDuplicateFinder_Main _formMain_ref;
-
-		// All files. Maybe skip adding all files to this, and instead add them to _concurrentSizeStorage
-		private ConcurrentBag<FileInfo> _fileBag = new ConcurrentBag<FileInfo>();
+		private readonly FrmDuplicateFinder_Main _formMain_ref;
 
 		// Initial comparison of file sizes
-		private ConcurrentDictionary<long, List<FileInfo>> _concurrentSizeStorage = new ConcurrentDictionary<long, List<FileInfo>>();
+		private ConcurrentDictionary<long, List<FileInfo>> _concurrentSizeDictionary = new ConcurrentDictionary<long, List<FileInfo>>();
 
 		// Secondary comparison of equal sized files
 
-		public ConcurrentDictionary<string, List<string>> HashedDictionary { get; } = new ConcurrentDictionary<string, List<string>>();
+		public ConcurrentDictionary<string, List<string>> _concurrentHashDictionary { get; } = new ConcurrentDictionary<string, List<string>>();
 
 		private List<DirectoryInfo> _fullDirectoryList = new List<DirectoryInfo>();
 		private int _filesProcessedCount = 0,  
@@ -43,16 +41,14 @@ namespace DuplicateFinder
 
 		public List<string> this[string key]
 		{
-			get => HashedDictionary[key];
-			set => HashedDictionary[key] = value;
+			get => _concurrentHashDictionary[key];
+			set => _concurrentHashDictionary[key] = value;
 		}
 
 		// TODO: Getting the list of directories/files can be threaded. Should perhaps be moved into FileDictionary. The form doesn't need to handle this. We will however need to relay information back to the form.
 		public void BuildDirectoryList(List<string> initialDirecotryList)
 		{
-			FileInfo[] tempFileArr;
-
-				// Add the initial list of directories to the dictionary. This is the list of directories added by the user and show in the listbox
+			// Add the initial list of directories to the dictionary. This is the list of directories added by the user and show in the listbox
 			_fullDirectoryList = new List<DirectoryInfo>();
 			foreach (string strElem in initialDirecotryList)
 				_fullDirectoryList.Add(new DirectoryInfo(strElem));
@@ -62,20 +58,43 @@ namespace DuplicateFinder
 			{
 				try
 				{
-					tempFileArr = _fullDirectoryList[i].GetFiles();
-					_totalFilesCount += tempFileArr.Length;
+					List<FileInfo> fi = _fullDirectoryList[i].GetFiles().ToList();
+
+					_totalFilesCount += fi.Count;
 					_fullDirectoryList.AddRange(_fullDirectoryList[i].GetDirectories());
 
 					_formMain_ref.UpdateDirectory_FileCounts(_totalFilesCount, _fullDirectoryList.Count);
+
+					new Thread(() => BuildFileSizeDictionaryPiece(fi)).Start();
 				}
 				catch (PathTooLongException) { /* This is, as of commit #4, an unfixable error. Will keep an eye out for potential workarounds. */ }
 				catch (UnauthorizedAccessException) { /* Just skip the folder. No handling necessary. */ }
 			}
 		}
 
-		// Add a file to the file dictionary
-		public void BuildFileDictionary()
+		private void BuildFileSizeDictionaryPiece(List<FileInfo> fileList)
 		{
+			Parallel.For(0, fileList.Count, i =>
+			{
+				List<FileInfo> currentFiles;
+				if (_concurrentSizeDictionary.TryGetValue(fileList.Count, out currentFiles))
+				{
+					lock (currentFiles)
+					{
+						currentFiles.Add(fileList[i]);
+					}
+				}
+				else
+					_concurrentSizeDictionary.TryAdd(fileList[i].Length, new List<FileInfo>() { fileList[i] } );
+			});
+		}
+
+		// Add a file to the file dictionary
+		public void _BuildFileDictionary()
+		{
+			if (_concurrentSizeDictionary.IsEmpty) // || likely other failure scenarios
+				throw new Exception("Placeholder: BuildDirectoryList must be successfully run prior to this method (BuildFileDictionary)");
+
 			foreach (DirectoryInfo dirElem in _fullDirectoryList)
 			{
 				try
@@ -83,6 +102,32 @@ namespace DuplicateFinder
 					Parallel.ForEach(dirElem.GetFiles().ToList(), fElem =>
 					{
 						Add(fElem);
+						_filesProcessedCount++;
+						_formMain_ref.UpdateProgressBar(_filesProcessedCount, _totalFilesCount);
+					});
+				}
+				catch (PathTooLongException) { /* This is, as of commit #4, an unrecoverable error. Will keep an eye out for potential workarounds */ }
+				catch (UnauthorizedAccessException) { }
+			}
+		}
+
+		// Add a file to the file dictionary
+		public void BuildFileDictionary()
+		{
+			if (_concurrentSizeDictionary.IsEmpty) // || likely other failure scenarios
+				throw new Exception("Placeholder: BuildDirectoryList must be successfully run prior to this method (BuildFileDictionary)");
+
+			foreach (KeyValuePair<long, List<FileInfo>> kvPair in _concurrentSizeDictionary)
+			{
+				// We only care about files with duplicate sizes. If size of list = 1, then there are no duplicates
+				if (kvPair.Value.Count == 1)
+					continue;
+
+				try
+				{
+					Parallel.ForEach(kvPair.Value, fileListElem =>
+					{
+						Add(fileListElem);
 						_filesProcessedCount++;
 						_formMain_ref.UpdateProgressBar(_filesProcessedCount, _totalFilesCount);
 					});
@@ -151,21 +196,21 @@ namespace DuplicateFinder
 
 			List<string> targetList;
 
-			if (HashedDictionary.ContainsKey(key))
+			if (_concurrentHashDictionary.ContainsKey(key))
 			{
-				HashedDictionary.TryGetValue(key, out targetList);
+				_concurrentHashDictionary.TryGetValue(key, out targetList);
 				if (targetList != null)
 					//lock (targetList)					
 						targetList.Add(fInfo.FullName);
 				return;
 			}
 			targetList = new List<string> { fInfo.FullName };
-			HashedDictionary.TryAdd(key, targetList);
+			_concurrentHashDictionary.TryAdd(key, targetList);
 		}
 
 		public IEnumerator<List<string>> GetEnumerator()
 		{
-			return HashedDictionary.Values.GetEnumerator();
+			return _concurrentHashDictionary.Values.GetEnumerator();
 		}
 		
 		IEnumerator IEnumerable.GetEnumerator() { return GetEnumerator(); }

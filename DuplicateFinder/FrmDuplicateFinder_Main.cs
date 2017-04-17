@@ -102,7 +102,7 @@ namespace DuplicateFinder
 
 		private void PopulateDataGrid()
 		{
-			ConcurrentDictionary<string, List<string>> ref_hashedDictionary = _fileDict.HashedDictionary;
+			ConcurrentDictionary<string, List<string>> ref_hashedDictionary = _fileDict._concurrentHashDictionary;
 			foreach (KeyValuePair<string, List<string>> elem in ref_hashedDictionary)
 			{
 				AddToDataGrid(elem.Key, new FileInfo(elem.Value.First()));
