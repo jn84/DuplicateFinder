@@ -29,9 +29,9 @@
 		private void InitializeComponent()
 		{
 			this.components = new System.ComponentModel.Container();
-			System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
-			System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
-			System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
+			System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle10 = new System.Windows.Forms.DataGridViewCellStyle();
+			System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle11 = new System.Windows.Forms.DataGridViewCellStyle();
+			System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle12 = new System.Windows.Forms.DataGridViewCellStyle();
 			this.lstDirectories = new System.Windows.Forms.ListBox();
 			this.btnAddDirectory = new System.Windows.Forms.Button();
 			this.btnFindDupes = new System.Windows.Forms.Button();
@@ -61,6 +61,8 @@
 			this.gridColFolderCount = new System.Windows.Forms.DataGridViewTextBoxColumn();
 			this.progbarFiles = new System.Windows.Forms.ProgressBar();
 			this.chkSkipEmptyFiles = new System.Windows.Forms.CheckBox();
+			this.lblFilesProcessed = new System.Windows.Forms.Label();
+			this.lblProcessCompletion = new System.Windows.Forms.Label();
 			this.ctxMenuDir.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.dgrdFileDuplicates)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.dgrdFileList)).BeginInit();
@@ -190,8 +192,8 @@
 			// 
 			// gridColKey
 			// 
-			dataGridViewCellStyle1.NullValue = null;
-			this.gridColKey.DefaultCellStyle = dataGridViewCellStyle1;
+			dataGridViewCellStyle10.NullValue = null;
+			this.gridColKey.DefaultCellStyle = dataGridViewCellStyle10;
 			this.gridColKey.HeaderText = "";
 			this.gridColKey.Name = "gridColKey";
 			this.gridColKey.ReadOnly = true;
@@ -207,8 +209,8 @@
 			// 
 			// gridColCount
 			// 
-			dataGridViewCellStyle2.NullValue = null;
-			this.gridColCount.DefaultCellStyle = dataGridViewCellStyle2;
+			dataGridViewCellStyle11.NullValue = null;
+			this.gridColCount.DefaultCellStyle = dataGridViewCellStyle11;
 			this.gridColCount.HeaderText = "Count";
 			this.gridColCount.Name = "gridColCount";
 			this.gridColCount.ReadOnly = true;
@@ -217,9 +219,9 @@
 			// 
 			// gridColSize
 			// 
-			dataGridViewCellStyle3.Format = "N4";
-			dataGridViewCellStyle3.NullValue = null;
-			this.gridColSize.DefaultCellStyle = dataGridViewCellStyle3;
+			dataGridViewCellStyle12.Format = "N4";
+			dataGridViewCellStyle12.NullValue = null;
+			this.gridColSize.DefaultCellStyle = dataGridViewCellStyle12;
 			this.gridColSize.HeaderText = "Size (KB)";
 			this.gridColSize.Name = "gridColSize";
 			this.gridColSize.ReadOnly = true;
@@ -366,11 +368,31 @@
 			this.chkSkipEmptyFiles.Text = "Ignore Empty Files";
 			this.chkSkipEmptyFiles.UseVisualStyleBackColor = true;
 			// 
+			// lblFilesProcessed
+			// 
+			this.lblFilesProcessed.AutoSize = true;
+			this.lblFilesProcessed.Location = new System.Drawing.Point(297, 919);
+			this.lblFilesProcessed.Name = "lblFilesProcessed";
+			this.lblFilesProcessed.Size = new System.Drawing.Size(125, 20);
+			this.lblFilesProcessed.TabIndex = 14;
+			this.lblFilesProcessed.Text = "Files Processed:";
+			// 
+			// lblProcessCompletion
+			// 
+			this.lblProcessCompletion.AutoSize = true;
+			this.lblProcessCompletion.Location = new System.Drawing.Point(429, 919);
+			this.lblProcessCompletion.Name = "lblProcessCompletion";
+			this.lblProcessCompletion.Size = new System.Drawing.Size(39, 20);
+			this.lblProcessCompletion.TabIndex = 15;
+			this.lblProcessCompletion.Text = "0 / 0";
+			// 
 			// FrmDuplicateFinder_Main
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.ClientSize = new System.Drawing.Size(1488, 1062);
+			this.Controls.Add(this.lblProcessCompletion);
+			this.Controls.Add(this.lblFilesProcessed);
 			this.Controls.Add(this.chkSkipEmptyFiles);
 			this.Controls.Add(this.progbarFiles);
 			this.Controls.Add(this.tabCtlDuplicates);
@@ -430,6 +452,8 @@
 		private System.Windows.Forms.DataGridViewTextBoxColumn gridColFileName;
 		private System.Windows.Forms.DataGridViewTextBoxColumn gridColCount;
 		private System.Windows.Forms.DataGridViewTextBoxColumn gridColSize;
+		private System.Windows.Forms.Label lblFilesProcessed;
+		private System.Windows.Forms.Label lblProcessCompletion;
 	}
 }
 

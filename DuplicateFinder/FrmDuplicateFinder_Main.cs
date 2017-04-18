@@ -100,13 +100,18 @@ namespace DuplicateFinder
 			ThreadSafe_SetTextboxText(txtTotalFiles, fileCount.ToString());
 		}
 
+		/// <summary>
+		/// Fill out dgrdFileList with the files duplicate information
+		/// </summary>
 		private void PopulateDataGrid()
 		{
 			ConcurrentDictionary<string, List<string>> ref_hashedDictionary = _fileDict._concurrentHashDictionary;
+
+			// TODO: Shouldn't be doing this here. Remove once a method to reset the interface is completed
+			dgrdFileList.Rows.Clear();
+
 			foreach (KeyValuePair<string, List<string>> elem in ref_hashedDictionary)
-			{
 				AddToDataGrid(elem.Key, new FileInfo(elem.Value.First()));
-			}
 		}
 
 		private void UserInterfaceInteractable(bool canInteract)
@@ -137,11 +142,17 @@ namespace DuplicateFinder
 			return input;
 		}
 
+		/// <summary>
+		/// Get a DataGridView row index based on a key
+		/// </summary>
+		/// <param name="key">The key to be searched for</param>
+		/// <returns>A DataGridView row index with a matching key. -1 if the key was not found</returns>
 		private int GridIndexFromKey(string key)
 		{
 			try
 			{
-				var d = dgrdFileDuplicates.Rows
+				DataGridViewRow d = 
+					dgrdFileDuplicates.Rows
 					.Cast<DataGridViewRow>()
 					.First(r => r.Cells["gridColKey"].Value.ToString().Equals(key));
 
